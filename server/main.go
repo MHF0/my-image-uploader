@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -14,6 +16,16 @@ import (
 func main() {
 	// Initialize Gin framework
 	router := gin.Default()
+
+	// Configure CORS middleware
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://upload.mohammedfarhan.me"}, 
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60, // 12 hours
+	}))
 
 	// Create the 'uploads' folder if it doesn't exist
 	os.MkdirAll("./uploads", os.ModePerm)
@@ -29,9 +41,9 @@ func main() {
 		}
 
 		// Generate a unique ID for the file (UUID) and create the final file path
-		uniqueID := uuid.New().String()[:8] // Create short UUID (first 8 characters)
+		uniqueID := uuid.New().String()[:8]          // Create short UUID (first 8 characters)
 		fileExtension := filepath.Ext(file.Filename) // Get the file extension
-		newFileName := uniqueID + fileExtension // Combine the UUID and original file extension
+		newFileName := uniqueID + fileExtension      // Combine the UUID and original file extension
 
 		// Define the path to save the uploaded image
 		path := filepath.Join("uploads", newFileName)
