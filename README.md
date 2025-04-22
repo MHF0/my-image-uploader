@@ -5,7 +5,6 @@
   
   ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
   ![Status](https://img.shields.io/badge/status-active-success.svg)
-  ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 </div>
 
 <hr />
