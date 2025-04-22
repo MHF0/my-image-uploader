@@ -1,14 +1,62 @@
-import { useState, useRef, DragEvent, ChangeEvent } from 'react'
+import { useState, useRef, DragEvent, ChangeEvent, useEffect } from 'react'
+
+interface StoredImage {
+  preview: string;
+  url: string;
+}
 
 function App() {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState<number[]>([]);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+  const [savedImages, setSavedImages] = useState<StoredImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved images from localStorage when component mounts
+  useEffect(() => {
+    const storedImages = localStorage.getItem('savedImages');
+    if (storedImages) {
+      try {
+        const parsedImages = JSON.parse(storedImages) as StoredImage[];
+        setSavedImages(parsedImages);
+      } catch (e) {
+        console.error('Error parsing saved images from localStorage:', e);
+        // If there's an error parsing, clear the localStorage
+        localStorage.removeItem('savedImages');
+      }
+    }
+  }, []);
+
+  // Save successful uploads to localStorage
+  const saveToLocalStorage = (preview: string, url: string) => {
+    const newImage: StoredImage = { preview, url };
+    const updatedImages = [...savedImages, newImage];
+    setSavedImages(updatedImages);
+    
+    try {
+      localStorage.setItem('savedImages', JSON.stringify(updatedImages));
+    } catch (e) {
+      console.error('Error saving to localStorage:', e);
+      setError('Failed to save image to local storage');
+    }
+  };
+
+  // Remove image from saved images
+  const removeFromGallery = (index: number) => {
+    const updatedImages = [...savedImages];
+    updatedImages.splice(index, 1);
+    setSavedImages(updatedImages);
+    
+    try {
+      localStorage.setItem('savedImages', JSON.stringify(updatedImages));
+    } catch (e) {
+      console.error('Error updating localStorage:', e);
+    }
+  };
 
   const handleFileSelect = (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
@@ -104,7 +152,7 @@ function App() {
         });
         
         // Start the upload
-        xhr.open('POST', 'https://upload.mohammedfarhan.me/upload', true);
+        xhr.open('POST', 'https://uploader.mohammedfarhan.me/upload', true);
         xhr.send(formData);
         
         // Wait for the upload to complete and return the URL
@@ -115,6 +163,9 @@ function App() {
           newUrls[index] = imageUrl;
           return newUrls;
         });
+        
+        // Save to localStorage
+        saveToLocalStorage(previews[index], imageUrl);
         
         return imageUrl;
       } catch (error) {
@@ -147,7 +198,7 @@ function App() {
         // Use a more subtle notification approach
         const notification = document.createElement('div');
         notification.textContent = 'URL copied to clipboard!';
-        notification.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-lg';
+        notification.className = 'fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
         document.body.appendChild(notification);
         
         // Remove the notification after 2 seconds
@@ -167,6 +218,11 @@ function App() {
     setUploadProgress([]);
     setUploadedUrls([]);
     setError(null);
+  };
+
+  const clearAllSaved = () => {
+    setSavedImages([]);
+    localStorage.removeItem('savedImages');
   };
 
   return (
@@ -267,6 +323,51 @@ function App() {
           </div>
         )}
 
+        {/* Saved Gallery from localStorage */}
+        {savedImages.length > 0 && (
+          <div className="mt-8 border-t pt-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-blue-500">Your Saved Gallery</h2>
+              <button 
+                className="text-sm text-red-500 hover:text-red-700 transition-colors"
+                onClick={clearAllSaved}
+              >
+                Clear Gallery
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {savedImages.map((image, index) => (
+                <div key={index} className="rounded-lg overflow-hidden shadow-sm bg-white relative group">
+                  <img src={image.preview} alt={`Saved ${index}`} className="w-full h-48 object-cover" />
+                  <button 
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeFromGallery(index)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <div className="flex p-2.5 gap-1">
+                    <input 
+                      type="text" 
+                      value={image.url} 
+                      readOnly 
+                      className="flex-1 p-2 text-sm border border-gray-300 rounded text-gray-700 overflow-hidden text-ellipsis"
+                    />
+                    <button 
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded transition-colors duration-300"
+                      onClick={() => copyToClipboard(image.url)}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Current session uploads */}
         {uploadedUrls.length > 0 && (
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-blue-500 mb-4">Your Gallery</h2>

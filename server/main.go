@@ -19,7 +19,7 @@ func main() {
 
 	// Configure CORS middleware
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://postimages.mohammedfarhan.me", "https://agile-benevolence-production.up.railway.app"}, 
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://upload.mohammedfarhan.me", "https://agile-benevolence-production.up.railway.app"}, 
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -56,7 +56,7 @@ func main() {
 		}
 
 		// Generate the direct link to the uploaded image
-		link := fmt.Sprintf("https://upload.mohammedfarhan.me/uploads/%s", newFileName)
+		link := fmt.Sprintf("https://uploader.mohammedfarhan.me/uploads/%s", newFileName)
 
 		// Send the link back to the user in JSON format
 		c.JSON(http.StatusOK, gin.H{
