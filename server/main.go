@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
@@ -58,9 +60,24 @@ func main() {
 			return
 		}
 
-		// Return the URL of the uploaded image
+		// Extract the filename from the Cloudinary URL
+		// Example URL: https://res.cloudinary.com/dvfsreifp/image/upload/v1650123456/abcdef123.jpg
+		// We want to extract: abcdef123.jpg
+		cloudinaryURL := uploadResult.SecureURL
+		urlParts := strings.Split(cloudinaryURL, "/")
+		filename := urlParts[len(urlParts)-1]
+
+		// Some Cloudinary URLs might include version (v1234567890/), we want to handle that
+		if strings.Contains(filename, "/") {
+			filename = filepath.Base(filename)
+		}
+
+		// Generate your custom domain URL
+		customURL := "https://uploader.mohammedfarhan.me/images/" + filename
+
+		// Return the URL of the uploaded image with your custom domain
 		c.JSON(http.StatusOK, gin.H{
-			"link": uploadResult.SecureURL,
+			"link": customURL,
 		})
 	})
 
