@@ -104,7 +104,7 @@ function App() {
         });
         
         // Start the upload
-        xhr.open('POST', 'http://upload.mohammedfarhan.me/upload', true);
+        xhr.open('POST', 'https://upload.mohammedfarhan.me/upload', true);
         xhr.send(formData);
         
         // Wait for the upload to complete and return the URL
