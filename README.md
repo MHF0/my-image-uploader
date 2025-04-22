@@ -44,7 +44,7 @@
         <br>Go
       </td>
       <td align="center" width="120">
-        <img src="https://res.cloudinary.com/cloudinary-marketing/image/upload/v1599098500/creative_folder/logo-blue-png.png" width="40" height="40" alt="Cloudinary" />
+        <img src="https://uploader.mohammedfarhan.me/images/syihfukwoityjix25mxb.png" width="40" height="40" alt="Cloudinary" />
         <br>Cloudinary
       </td>
       <td align="center" width="120">
