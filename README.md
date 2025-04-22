@@ -1,8 +1,7 @@
 # 🖼️ Modern Image Uploader
 
 <div align="center">
-  <img src="https://upload.mohammedfarhan.me/uploads/banner_image.jpg" alt="Modern Image Uploader" width="100%" />
-  <p><em><a href="https://upload.mohammedfarhan.me">Fast, secure, and effortless image sharing - no sign-up required</a></em></p>
+  <p><em><a href="https://upload.mohammedfarhan.me" alt="upload">Fast, secure, and effortless image sharing - no sign-up required</a></em></p>
   
   ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
   ![Status](https://img.shields.io/badge/status-active-success.svg)
