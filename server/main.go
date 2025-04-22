@@ -1,73 +1,95 @@
-// main.go
 package main
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 func main() {
-	// Initialize Gin framework
+	// Load Cloudinary credentials from environment variables
+	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
+	apiKey := os.Getenv("CLOUDINARY_API_KEY")
+	apiSecret := os.Getenv("CLOUDINARY_API_SECRET")
+
+	cld, err := cloudinary.NewFromParams(cloudName, apiKey, apiSecret)
+	if err != nil {
+		log.Fatalf("Failed to initialize Cloudinary: %v", err)
+	}
+
 	router := gin.Default()
 
-	// Configure CORS middleware
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://upload.mohammedfarhan.me", "https://agile-benevolence-production.up.railway.app"}, 
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://upload.mohammedfarhan.me"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-		MaxAge:           12 * 60 * 60, // 12 hours
+		MaxAge:           12 * 60 * 60,
 	}))
 
-	// Create the 'uploads' folder if it doesn't exist
-	os.MkdirAll("./uploads", os.ModePerm)
-
-	// Endpoint for uploading images
+	// Upload endpoint
 	router.POST("/upload", func(c *gin.Context) {
-		// Get the uploaded file from the form
+		// Get the file from the request
 		file, err := c.FormFile("image")
 		if err != nil {
-			// Return error if file is not uploaded correctly
 			c.JSON(http.StatusBadRequest, gin.H{"error": "File upload failed"})
 			return
 		}
 
-		// Generate a unique ID for the file (UUID) and create the final file path
-		uniqueID := uuid.New().String()[:8]          // Create short UUID (first 8 characters)
-		fileExtension := filepath.Ext(file.Filename) // Get the file extension
-		newFileName := uniqueID + fileExtension      // Combine the UUID and original file extension
+		// Open the file
+		src, err := file.Open()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open uploaded file"})
+			return
+		}
+		defer src.Close()
 
-		// Define the path to save the uploaded image
-		path := filepath.Join("uploads", newFileName)
-
-		// Save the uploaded file to the server
-		if err := c.SaveUploadedFile(file, path); err != nil {
-			// Return error if file save fails
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+		// Upload the file to Cloudinary
+		uploadResult, err := cld.Upload.Upload(c, src, uploader.UploadParams{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload to Cloudinary"})
 			return
 		}
 
-		// Generate the direct link to the uploaded image
-		link := fmt.Sprintf("https://uploader.mohammedfarhan.me/uploads/%s", newFileName)
-
-		// Send the link back to the user in JSON format
+		// Return the URL of the uploaded image
 		c.JSON(http.StatusOK, gin.H{
-			"link": link,
+			"link": uploadResult.SecureURL,
 		})
 	})
 
-	// Serve the uploaded images via static route
-	router.Static("/uploads", "./uploads")
+	// Reverse proxy route to serve Cloudinary images
+	router.GET("/images/:filename", func(c *gin.Context) {
+		filename := c.Param("filename")
 
-	// Start the server on port 8080
-	log.Println("Starting server on :8080...")
+		cloudinaryURL := "https://res.cloudinary.com/dvfsreifp/image/upload/" + filename
+
+		// Fetch the image from Cloudinary
+		resp, err := http.Get(cloudinaryURL)
+		if err != nil || resp.StatusCode != 200 {
+			c.JSON(http.StatusBadGateway, gin.H{"error": "Failed to fetch image"})
+			return
+		}
+		defer resp.Body.Close()
+
+		// Copy content-type header from Cloudinary response
+		contentType := resp.Header.Get("Content-Type")
+		if contentType == "" {
+			contentType = "image/jpeg" // Default fallback
+		}
+
+		// Set headers and stream the image
+		c.Header("Content-Type", contentType)
+		c.Status(resp.StatusCode)
+		io.Copy(c.Writer, resp.Body)
+	})
+
+	log.Println("Server is running on :8080")
 	log.Fatal(router.Run(":8080"))
 }

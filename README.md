@@ -1,10 +1,12 @@
 # 🖼️ Modern Image Uploader
 
 <div align="center">
+  <img src="https://upload.mohammedfarhan.me/uploads/banner_image.jpg" alt="Modern Image Uploader" width="100%" />
   <p><em><a href="https://upload.mohammedfarhan.me">Fast, secure, and effortless image sharing - no sign-up required</a></em></p>
   
   ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
   ![Status](https://img.shields.io/badge/status-active-success.svg)
+  ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 </div>
 
 <hr />
@@ -17,7 +19,8 @@
 - **📱 Responsive Design** - Works perfectly on desktop, tablet, and mobile devices
 - **📊 Progress Tracking** - Real-time progress indicators for each upload
 - **📥 Multiple File Support** - Upload multiple images simultaneously
-- **🔒 Secure Storage** - Images are stored securely on our servers
+- **🔒 Secure Storage** - Images are stored securely on Cloudinary
+- **💾 Local Gallery** - View and manage your uploaded images even after page refresh
 
 ## 🚀 Tech Stack
 
@@ -39,6 +42,10 @@
       <td align="center" width="120">
         <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg" width="40" height="40" alt="Go" />
         <br>Go
+      </td>
+      <td align="center" width="120">
+        <img src="https://res.cloudinary.com/cloudinary-marketing/image/upload/v1599098500/creative_folder/logo-blue-png.png" width="40" height="40" alt="Cloudinary" />
+        <br>Cloudinary
       </td>
       <td align="center" width="120">
         <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" width="40" height="40" alt="Docker" />
@@ -70,7 +77,6 @@ my-image-uploader/
 │   └── ...               # Configuration files
 ├── server/               # Go backend API
 │   ├── main.go           # Entry point
-│   ├── uploads/          # Image storage
 │   └── ...               # Additional modules
 └── ...                   # Project files
 ```
@@ -78,9 +84,10 @@ my-image-uploader/
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Node.js (v22+)
-- Go (v1.24+)
-- Docker (optional)
+- Node.js (v16+)
+- Go (v1.18+)
+- Cloudinary account (for image storage)
+- Docker (optional, for containerized deployment)
 
 ### Frontend Setup
 ```bash
@@ -95,26 +102,80 @@ npm run dev
 ```
 
 ### Backend Setup
+
+The backend uses Go with Gin framework and Cloudinary for image storage.
+
 ```bash
 # Navigate to server directory
 cd server
+
+# Install dependencies
+go mod tidy
+
+# Set up environment variables
+# On Windows
+set CLOUDINARY_CLOUD_NAME=your_cloud_name
+set CLOUDINARY_API_KEY=your_api_key
+set CLOUDINARY_API_SECRET=your_api_secret
+
+# On Linux/Mac
+export CLOUDINARY_CLOUD_NAME=your_cloud_name
+export CLOUDINARY_API_KEY=your_api_key
+export CLOUDINARY_API_SECRET=your_api_secret
 
 # Run the Go server
 go run main.go
 ```
 
-### Docker Setup (Optional)
+### Docker Deployment
+
+You can easily deploy the application using Docker:
+
 ```bash
-# Build and run with Docker Compose
+# Build the Docker image
+docker build -t image-uploader .
+
+# Run the container
+docker run -p 8080:8080 \
+  -e CLOUDINARY_CLOUD_NAME=your_cloud_name \
+  -e CLOUDINARY_API_KEY=your_api_key \
+  -e CLOUDINARY_API_SECRET=your_api_secret \
+  image-uploader
+```
+
+Or use Docker Compose:
+
+```bash
+# Create a .env file with your Cloudinary credentials first
+# Then run:
 docker-compose up -d
 ```
+
+## CORS Configuration
+
+The server includes CORS configuration to allow cross-origin requests. If you're experiencing CORS issues:
+
+1. Ensure the frontend URL is added to the allowed origins in `main.go`:
+
+```go
+router.Use(cors.New(cors.Config{
+    AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "https://your-frontend-domain.com"},
+    AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+    AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+    ExposeHeaders:    []string{"Content-Length"},
+    AllowCredentials: true,
+    MaxAge:           12 * 60 * 60,
+}))
+```
+
+2. Restart the server after making changes.
 
 ## 🧩 How It Works
 
 1. **Upload** - Drag and drop or select images from your device
-2. **Process** - Images are processed and stored securely on our servers
+2. **Process** - Images are processed and uploaded to Cloudinary via the Go backend
 3. **Share** - Copy the generated links to share your images instantly
-4. **Manage** - View your uploaded images in the gallery
+4. **Manage** - View your uploaded images in the gallery (persisted in localStorage)
 
 ## 🔮 Future Enhancements
 
@@ -123,6 +184,7 @@ docker-compose up -d
 - Custom link customization
 - Album creation and organization
 - Enhanced security features
+- Support for additional file types
 
 ## 🤝 Contributing
 
