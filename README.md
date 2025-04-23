@@ -84,12 +84,14 @@ my-image-uploader/
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
+
 - Node.js (v16+)
 - Go (v1.18+)
 - Cloudinary account (for image storage)
 - Docker (optional, for containerized deployment)
 
 ### Frontend Setup
+
 ```bash
 # Navigate to frontend directory
 cd frontend
