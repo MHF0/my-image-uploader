@@ -56,11 +56,11 @@
 ## 📷 Screenshots
 
 <div align="center">
-  <img src="https://upload.mohammedfarhan.me/uploads/fa8e3455.png" width="45%" alt="Home" />
+  <img src="https://uploader.mohammedfarhan.me/images/a5i3gk3se6fcc1umi18l.png" width="45%" alt="Home" />
   &nbsp;&nbsp;
-  <img src="https://upload.mohammedfarhan.me/uploads/fbe148ba.png" width="45%" alt="Upload" />
+  <img src="https://uploader.mohammedfarhan.me/images/fo3ojuheflokj07xmzml.png" width="45%" alt="Upload" />
   <br/><br/>
-  <img src="https://upload.mohammedfarhan.me/uploads/404a3021.png" width="45%" alt="Gallery" />
+  <img src="https://uploader.mohammedfarhan.me/images/jbsesveo7nwgopx7olir.png" width="45%" alt="Gallery" />
 </div>
 
 ## 🏗️ Architecture
