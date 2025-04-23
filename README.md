@@ -83,8 +83,8 @@ my-image-uploader/
 
 ### Prerequisites
 
-- Node.js (v16+)
-- Go (v1.18+)
+- Node.js (v22+)
+- Go (v1.24+)
 - Cloudinary account (for image storage)
 - Docker (optional, for containerized deployment)
 
